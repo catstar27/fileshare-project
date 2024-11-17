@@ -74,6 +74,3 @@ class FileOperator:
         client_socket.close()
         recv_file.close()
 
-
-print(socket.gethostbyname_ex(socket.gethostname())[2][0])
-fo = FileOperator("server_storage")
