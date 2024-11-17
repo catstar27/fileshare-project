@@ -7,6 +7,7 @@ class FileOperator:
     """
     This class handles file operations by storing a working directory.
     To be used on the server side only, not on client.
+    This uses threading to handle multiple connections. Only use one instance of this class.
     """
     ip_server = socket.gethostbyname_ex(socket.gethostname())[2][0]
     port = 4450
@@ -26,14 +27,13 @@ class FileOperator:
 
     def server_listen(self):
         self.server.listen()
-        print("listening")
         while True:
             conn, addr = self.server.accept()
-            thread = threading.Thread(target=self.handle_client, args=[conn])
+            thread = threading.Thread(target=self.handle_client, args=[conn, addr])
             thread.start()
 
-    def handle_client(self, conn):
-        print("handling")
+    def handle_client(self, conn, addr):
+        print(f"Handling Connection at {addr}")
         connected = True
         while connected:
             cmd = conn.recv(self.buffer).decode(self.format)
@@ -47,13 +47,13 @@ class FileOperator:
             else:
                 print(f"Invalid Request: {cmd[0]}")
 
-    def send_to_client(self, client_socket, filename):
+    def send_to_client(self, client_socket, filename):  # Sends a file to the client
         if os.path.exists(os.path.join(self.storage_dir, filename)):
             send_cmd = "OK"
-            client_socket.send(send_cmd.encode(self.format))
+            client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
             send_file = open(os.path.join(self.storage_dir, filename), "rb")
             data = send_file.read(self.buffer)
-            while data:
+            while data:  # Sends data a number of bytes equal to the buffer until there is none
                 client_socket.send(data)
                 data = send_file.read(self.buffer)
             client_socket.shutdown(2)
@@ -61,18 +61,19 @@ class FileOperator:
             send_file.close()
         else:
             print("Requested File Not on Server")
-        return False
 
-    def recv_from_client(self, client_socket, filename):
-        print(filename)
+    def recv_from_client(self, client_socket, filename):  # Receives a file from the client
+        print(f"Receiving File {filename}")
         send_cmd = "OK"
-        client_socket.send(send_cmd.encode(self.format))
+        client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
         recv_file = open(os.path.join(self.storage_dir, filename), "wb")
         data = client_socket.recv(self.buffer)
-        while data:
+        while data:  # Writes data a number of bytes equal to the buffer until there is none
             recv_file.write(data)
             data = client_socket.recv(self.buffer)
         client_socket.close()
         recv_file.close()
-        return False
 
+
+print(socket.gethostbyname_ex(socket.gethostname())[2][0])
+fo = FileOperator("server_storage")
