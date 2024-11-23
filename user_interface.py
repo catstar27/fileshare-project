@@ -14,12 +14,16 @@ root.geometry("500x400")
 file_database = {}
 
 
-# Handles login loop
+# Dictionary to hold users and their passwords (for now, it's a placeholder)
+user_database = {}
+
+# Placeholder for the current logged-in user
+current_user = None
+
+
 def show_login_screen():
-    # Clear the window and show login spot
     clear_window()
 
-    # Frame for login
     login_frame = tk.Frame(root)
     login_frame.pack(pady=10)
 
@@ -37,12 +41,55 @@ def show_login_screen():
         username = username_entry.get()
         password = password_entry.get()
 
-        #Placeholder, add actual authentication
-        if username and password:  # Checks if username and password were entered
+        # Placeholder: check if the user exists and the password matches
+        if username in user_database and user_database[username] == password:
+            global current_user
+            current_user = username  # Set the current user
             show_ip_screen()  # Proceed to IP input after successful login
         else:
-            messagebox.showerror("Error", "Please enter both username and password.")
+            messagebox.showerror("Error", "Invalid username or password.")
 
+    def show_create_user_screen():
+        clear_window()
+
+        create_user_frame = tk.Frame(root)
+        create_user_frame.pack(pady=10)
+
+        create_username_label = tk.Label(create_user_frame, text="Create Username:")
+        create_username_label.pack(pady=5)
+        create_username_entry = tk.Entry(create_user_frame)
+        create_username_entry.pack(pady=5)
+
+        create_password_label = tk.Label(create_user_frame, text="Create Password:")
+        create_password_label.pack(pady=5)
+        create_password_entry = tk.Entry(create_user_frame, show="*")
+        create_password_entry.pack(pady=5)
+
+        def handle_create_user():
+            new_username = create_username_entry.get()
+            new_password = create_password_entry.get()
+
+            # Check if username already exists
+            if new_username in user_database:
+                messagebox.showerror("Error", "Username already exists!")
+            elif new_username and new_password:
+                user_database[new_username] = new_password  # Store user in the database
+                messagebox.showinfo("Success", "User created successfully!")
+                show_login_screen()  # Go back to the login screen
+            else:
+                messagebox.showerror("Error", "Please fill in both fields.")
+
+        create_user_button = tk.Button(create_user_frame, text="Create User", command=handle_create_user)
+        create_user_button.pack(pady=10)
+
+        cancel_button = tk.Button(create_user_frame, text="Cancel", command=show_login_screen)
+        cancel_button.pack(pady=5)
+
+    # Button to create a new user
+    create_user_button = tk.Button(login_frame, text="Create New User", command=show_create_user_screen)
+    create_user_button.pack(pady=10)
+
+    # Login button
     login_button = tk.Button(login_frame, text="Login", command=handle_login)
     login_button.pack(pady=10)
 
