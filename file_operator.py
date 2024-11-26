@@ -92,8 +92,19 @@ class FileOperator:
             self.files_open[os.path.join(self.storage_dir, filename)] = 0
         while self.files_open[os.path.join(self.storage_dir, filename)] > 0:
             continue
-        send_cmd = "OK"
-        client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
+        if os.path.exists(os.path.join(self.storage_dir, filename)):
+            send_cmd = "FILE_EXISTS"
+            client_socket.send(send_cmd.encode(self.format))
+            while True:
+                received = client_socket.recv(self.buffer).decode(self.format)
+                print(received)
+                if received == "OK":
+                    break
+                else:
+                    return
+        else:
+            send_cmd = "OK"
+            client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
         self.files_open[os.path.join(self.storage_dir, filename)] = -1
         recv_file = open(os.path.join(self.storage_dir, filename), "wb")
         data = client_socket.recv(self.buffer)
@@ -110,6 +121,7 @@ class FileOperator:
             client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
             files = os.listdir(str(os.path.join(self.storage_dir, subfolder)))
             for file in files:
+                file += "\n"
                 client_socket.send(file.encode(self.format))
         else:
             send_cmd = "Invalid Subfolder"
@@ -135,5 +147,3 @@ class FileOperator:
             send_cmd = "Subfolder Exists"
             client_socket.send(send_cmd.encode(self.format))
 
-
-fo = FileOperator("server_storage")

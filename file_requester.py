@@ -32,6 +32,16 @@ class FileRequester:
                 received = self.server.recv(self.buffer).decode(self.format)
                 if received == "OK":
                     break
+                elif received == "FILE_EXISTS":
+                    confirm = input("File exists, continue? (y/n)\n")
+                    if confirm == 'y':
+                        new_send = "OK"
+                        self.server.send(new_send.encode(self.format))
+                        break
+                    else:
+                        new_send = "CANCEL"
+                        self.server.send(new_send.encode(self.format))
+                        break
                 else:
                     print(received)
                     return
@@ -84,7 +94,7 @@ class FileRequester:
         try:
             data = self.server.recv(self.buffer).decode(self.format)
             while data:
-                print(data)
+                print(data, end='')
                 data = self.server.recv(self.buffer).decode(self.format)
         except UnicodeDecodeError:
             print("Error Displaying Directory")
@@ -118,10 +128,3 @@ class FileRequester:
                 return
         self.server.close()
 
-
-fr = FileRequester("192.168.64.146", "/home/catstar27/Downloads")
-fr.recv_from_server("test.txt")
-fr.delete_on_server("test.txt")
-fr.send_to_server("/home/catstar27/Downloads/test.txt")
-fr.show_dir()
-fr.create_subfolder("stuff")
