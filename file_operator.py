@@ -146,4 +146,3 @@ class FileOperator:
         else:
             send_cmd = "Subfolder Exists"
             client_socket.send(send_cmd.encode(self.format))
-

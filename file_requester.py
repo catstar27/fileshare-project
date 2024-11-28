@@ -1,6 +1,9 @@
 import os
 import socket
+import time
+from analysis import PerformanceAnalysis as pa
 
+analysis = pa()
 
 class FileRequester:
     """
@@ -27,10 +30,13 @@ class FileRequester:
         if os.path.exists(filename):
             send_cmd = f"recv_from_client {os.path.basename(filename)}"
             self.server.send(send_cmd.encode(self.format))
+            response_start_time = time.time() # Measure time
+            
             while True:
                 # Wait for server to give the OK
                 received = self.server.recv(self.buffer).decode(self.format)
                 if received == "OK":
+                    response_time = time.time() - response_start_time
                     break
                 elif received == "FILE_EXISTS":
                     confirm = input("File exists, continue? (y/n)\n")
@@ -46,11 +52,48 @@ class FileRequester:
                     print(received)
                     return
             send_file = open(filename, "rb")
+            
+            # Variables for performance analysis
+            total_size = os.path.getsize(filename)
+            data_sent = 0
+            transfer_log = []
+            transfer_start_time = time.time()
+            last_append_time = time.time()
+            
             data = send_file.read(self.buffer)
-            while data:
+            while data:                
                 self.server.send(data)
+                data_sent += len(data)
+                
+                # Performance analysis
+                current_time = time.time()
+                elapsed_time = current_time - response_start_time
+                if(elapsed_time > 0):
+                    data_rate = data_sent / elapsed_time
                 data = send_file.read(self.buffer)
+                
+                if current_time - last_append_time >= 0.1: 
+                    transfer_log.append([
+                        elapsed_time,
+                        data_rate / 1048576
+                    ])        
+                    last_append_time = current_time
+            transfer_end_time = time.time()
             send_file.close()
+            
+            transfer_time = transfer_end_time - transfer_start_time
+            transfer_rate = total_size / transfer_time if transfer_time > 0 else 0
+            
+            store_data = [
+                    filename,
+                    "Upload",
+                    f"{total_size / 1048576:.2f}",
+                    f"{response_time:.2f}",
+                    f"{transfer_time:.2f}",
+                    f"{transfer_rate / 1e6:.2f}"
+                ]
+            analysis.create_log_file(store_data)     
+            analysis.plot_data_rate_graph(filename, transfer_log, "Upload")
         else:
             print("Requested File Not on Server")
         self.server.close()
@@ -59,10 +102,12 @@ class FileRequester:
         self.connect_server()
         send_cmd = f"send_to_client {filename}"
         self.server.send(send_cmd.encode(self.format))
+        response_start_time = time.time()
         while True:
             # Wait for server to give the OK
             received = self.server.recv(self.buffer).decode(self.format)
             if received == "OK":
+                response_time = time.time() - response_start_time
                 break
             else:
                 print(received)
@@ -73,9 +118,44 @@ class FileRequester:
             print("Error Writing File")
         else:
             data = self.server.recv(self.buffer)
+            
+            # Variables for performance analysis
+            total_size = os.path.getsize(filename)
+            data_received = 0
+            transfer_log = []
+            transfer_start_time = time.time()
+            last_append_time = time.time()
             while data:
                 recv_file.write(data)
                 data = self.server.recv(self.buffer)
+                
+                # Performance analysis
+                current_time = time.time()
+                elapsed_time = current_time - response_start_time
+                if(elapsed_time > 0):
+                    data_rate = data_received / elapsed_time
+                
+                if current_time - last_append_time >= 0.1: 
+                    transfer_log.append([
+                        elapsed_time,
+                        data_rate / 1048576
+                    ])        
+                    last_append_time = current_time
+            transfer_end_time = time.time()
+            
+            transfer_time = transfer_end_time - transfer_start_time
+            transfer_rate = total_size / transfer_time if transfer_time > 0 else 0
+            store_data = [
+                    filename,
+                    "Download",
+                    f"{total_size / 1048576:.2f}",
+                    f"{response_time:.2f}",
+                    f"{transfer_time:.2f}",
+                    f"{transfer_rate / 1e6:.2f}"
+                ]
+            analysis.create_log_file(store_data)     
+            analysis.plot_data_rate_graph(filename, transfer_log, "Download")
+            
             recv_file.close()
         self.server.close()
 
@@ -127,4 +207,3 @@ class FileRequester:
                 print(received)
                 return
         self.server.close()
-
