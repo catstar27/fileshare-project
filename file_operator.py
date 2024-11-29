@@ -167,7 +167,13 @@ class FileOperator:
 
 
 folder = ""
-while not os.path.exists(folder) and not os.path.isdir(folder):
+while True:
     folder = input("Enter a server folder path:\n")
+    if not os.path.exists(folder):
+        print("Invalid Path, Try Again")
+    elif not os.path.isdir(folder):
+        print("Not a Directory, Try Again")
+    else:
+        break
 fo = FileOperator(folder)
 atexit.register(fo.close_server)

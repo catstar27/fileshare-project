@@ -44,6 +44,7 @@ class FileRequester:
                     if confirm == 'y':
                         new_send = "OK"
                         self.server.send(new_send.encode(self.format))
+                        response_time = time.time() - response_start_time
                         break
                     else:
                         new_send = "CANCEL"
@@ -53,14 +54,14 @@ class FileRequester:
                     print(received)
                     return
             send_file = open(filename, "rb")
-            filename = os.path.basename(filename)
+
             # Variables for performance analysis
             total_size = os.path.getsize(filename)
             data_sent = 0
             transfer_log = []
             transfer_start_time = time.time()
             last_append_time = time.time()
-            
+            filename = os.path.basename(filename)
             data = send_file.read(self.buffer)
             while data:                
                 self.server.send(data)
@@ -69,7 +70,7 @@ class FileRequester:
                 # Performance analysis
                 current_time = time.time()
                 elapsed_time = current_time - response_start_time
-                if(elapsed_time > 0):
+                if elapsed_time > 0:
                     data_rate = data_sent / elapsed_time
                 data = send_file.read(self.buffer)
                 
