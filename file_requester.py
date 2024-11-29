@@ -53,9 +53,9 @@ class FileRequester:
                     print(received)
                     return
             send_file = open(filename, "rb")
-            
+            filename = os.path.basename(filename)
             # Variables for performance analysis
-            total_size = os.path.getsize(os.path.join(self.dest_dir, filename))
+            total_size = os.path.getsize(filename)
             data_sent = 0
             transfer_log = []
             transfer_start_time = time.time()
@@ -211,9 +211,4 @@ class FileRequester:
         self.server.close()
 
 
-fr = FileRequester("192.168.64.146", "/home/catstar27/Downloads")
-fr.show_dir()
-fr.recv_from_server("bigfile.zip")
-fr.delete_on_server("test.txt")
-fr.send_to_server("test.txt")
-fr.create_subfolder("test")
+
