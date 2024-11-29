@@ -214,3 +214,6 @@ class FileRequester:
 fr = FileRequester("192.168.64.146", "/home/catstar27/Downloads")
 fr.show_dir()
 fr.recv_from_server("bigfile.zip")
+fr.delete_on_server("test.txt")
+fr.send_to_server("test.txt")
+fr.create_subfolder("test")
