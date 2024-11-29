@@ -1,0 +1,4 @@
+Filename,Type (Download or Upload),File Size (MB),Response Time (s),Transfer Time (s),Transfer Rate (MB/s),Date
+test.wav,Download,0.00,0.00,0.07,0.00,2024-11-28 19:15:22.684051
+test.wav,Download,0.00,0.00,0.07,0.00,2024-11-28 19:15:41.956592
+bigfile.zip,Download,0.00,0.00,2.01,0.00,2024-11-28 19:20:08.827612

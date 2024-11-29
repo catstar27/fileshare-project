@@ -5,6 +5,7 @@ from analysis import PerformanceAnalysis as pa
 
 analysis = pa()
 
+
 class FileRequester:
     """
     This class handles requests to the file operator on the server side.
@@ -54,7 +55,7 @@ class FileRequester:
             send_file = open(filename, "rb")
             
             # Variables for performance analysis
-            total_size = os.path.getsize(filename)
+            total_size = os.path.getsize(os.path.join(self.dest_dir, filename))
             data_sent = 0
             transfer_log = []
             transfer_start_time = time.time()
@@ -117,14 +118,14 @@ class FileRequester:
         except PermissionError or FileNotFoundError:
             print("Error Writing File")
         else:
-            data = self.server.recv(self.buffer)
-            
             # Variables for performance analysis
-            total_size = os.path.getsize(filename)
+            total_size = os.path.getsize(os.path.join(self.dest_dir, filename))
             data_received = 0
             transfer_log = []
             transfer_start_time = time.time()
             last_append_time = time.time()
+
+            data = self.server.recv(self.buffer)
             while data:
                 recv_file.write(data)
                 data = self.server.recv(self.buffer)
@@ -132,7 +133,7 @@ class FileRequester:
                 # Performance analysis
                 current_time = time.time()
                 elapsed_time = current_time - response_start_time
-                if(elapsed_time > 0):
+                if elapsed_time > 0:
                     data_rate = data_received / elapsed_time
                 
                 if current_time - last_append_time >= 0.1: 
@@ -207,3 +208,8 @@ class FileRequester:
                 print(received)
                 return
         self.server.close()
+
+
+fr = FileRequester("192.168.64.146", "/home/catstar27/Downloads")
+fr.show_dir()
+fr.recv_from_server("bigfile.zip")

@@ -1,6 +1,7 @@
 import os
 import socket
 import threading
+import atexit
 
 
 class FileOperator:
@@ -72,6 +73,12 @@ class FileOperator:
             if self.files_open[filepath] != -1:
                 send_cmd = "OK"
                 client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
+                while True:
+                    received = client_socket.recv(self.buffer).decode(self.format)
+                    if received == "OK":
+                        break
+                    else:
+                        return
                 self.files_open[filepath] += 1
                 send_file = open(filepath, "rb")
                 data = send_file.read(self.buffer)
@@ -146,3 +153,13 @@ class FileOperator:
         else:
             send_cmd = "Subfolder Exists"
             client_socket.send(send_cmd.encode(self.format))
+
+    def close_server(self):
+        self.server.shutdown(1)
+
+
+folder = ""
+while not os.path.exists(folder) and not os.path.isdir(folder):
+    folder = input("Enter a server folder path:\n")
+fo = FileOperator(folder)
+atexit.register(fo.close_server)
