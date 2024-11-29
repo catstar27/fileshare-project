@@ -1,6 +1,12 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from functools import partial
+from authentication import Authentication
+from file_requester import FileRequester
+from analysis import PerformanceAnalysis
+auth = Authentication
+analysis = PerformanceAnalysis
+
 
 #very basic UI for the project
 #change as any of you see fit, there are placeholders where the buttons don't actually do anything
@@ -37,10 +43,26 @@ def show_login_screen():
     password_entry = tk.Entry(login_frame, show="*")
     password_entry.pack(pady=5)
 
+    password_label = tk.Label(login_frame, text="Do Not share password")
+    password_label.pack(pady=5)
+
     def handle_login():
         username = username_entry.get()
         password = password_entry.get()
 
+        #filling in place holder
+        result = auth.check_password(username, password)
+        if result == 0: #login_succesful
+            global current_user
+            current_user=username
+            show_ip_screen()
+        elif result == 1: #passwords wrong
+            messagebox.showerror("error", "incorrect password")
+        else: #user not found
+            messagebox.showerror("error", "user not found")
+
+    '''
+        # original   
         # Placeholder: check if the user exists and the password matches
         if username in user_database and user_database[username] == password:
             global current_user
@@ -48,6 +70,8 @@ def show_login_screen():
             show_ip_screen()  # Proceed to IP input after successful login
         else:
             messagebox.showerror("Error", "Invalid username or password.")
+        '''
+
 
     def show_create_user_screen():
         clear_window()
@@ -69,6 +93,14 @@ def show_login_screen():
             new_username = create_username_entry.get()
             new_password = create_password_entry.get()
 
+            #replacement code to check if username already exist's
+            if new_username and new_password:
+                auth.add_user(new_username, new_password)
+                messagebox.showinfo( "User Created")
+                show_login_screen() 
+
+            '''
+            #original code segment
             # Check if username already exists
             if new_username in user_database:
                 messagebox.showerror("Error", "Username already exists!")
@@ -78,7 +110,7 @@ def show_login_screen():
                 show_login_screen()  # Go back to the login screen
             else:
                 messagebox.showerror("Error", "Please fill in both fields.")
-
+            '''
         create_user_button = tk.Button(create_user_frame, text="Create User", command=handle_create_user)
         create_user_button.pack(pady=10)
 
@@ -108,7 +140,20 @@ def show_ip_screen():
     ip_entry = tk.Entry(ip_frame, width=25)
     ip_entry.pack(side=tk.LEFT)
 
+    #replacement code segment
+    def handle_ip_submission():
+        ip_address = ip_entry.get()
+        if ip_address:
+            global file_requester
+            file_requester = FileRequester(ip_server=ip_address, dest_dir="client_files")
+            show_upload_screen()
+        else:
+            messagebox.showerror("please enter valid ip address")
 
+
+
+    '''
+    original code
     def handle_ip_submission(): #does the ip submission
         ip_address = ip_entry.get()
         if ip_address:
@@ -116,7 +161,7 @@ def show_ip_screen():
             show_upload_screen()  # Proceed to file upload screen if anything ip is entered
         else:
             messagebox.showerror("Error", "Please enter a valid IP address.")
-
+    '''
     ip_button = tk.Button(ip_frame, text="Submit IP", command=handle_ip_submission)
     ip_button.pack(side=tk.LEFT, padx=10)
 
@@ -149,6 +194,17 @@ def show_upload_screen():
     button_frame = tk.Frame(root)
     button_frame.pack(pady=10)
 
+    #replacement code segment
+    def upload_file():
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            file_requester.send_to_server(file_path)
+            update_file_list()
+
+
+    '''
+    original code segment
+
     def upload_file():
         file_path = filedialog.askopenfilename()
         if file_path:
@@ -166,16 +222,41 @@ def show_upload_screen():
                 # Simulate adding file to the database
                 file_database[file_name] = file_path
                 update_file_list()
+    '''
+
+    #replacement for download segment
+    def download_file(file_name):
+        file_requester.recv_from_server(file_name)
+
+    '''
+    replacing this one too
 
     def download_file(file_name):
         # just show a message box for now
         messagebox.showinfo("Download", f"Downloading file: {file_name}")
+    '''
+    #replacement for deleting file segment
+    def delete_file(file_name):
+        file_requester.delete_on_server(file_name)
+        update_file_list()
+
+
+    '''
+    another one dj khaliiddddd
 
     def delete_file(file_name):
         if file_name in file_database:
             del file_database[file_name]
             messagebox.showinfo("Deleted", f"File '{file_name}' has been deleted.")
             update_file_list()
+    '''
+    #Performance method after file operations
+    def upload_file():
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            file_requester.send_to_server(file_path)
+            analysis.create_log_file([...]) #to log all data
+            update_file_list
 
     def update_file_list():
         for widget in file_list_frame.winfo_children():
