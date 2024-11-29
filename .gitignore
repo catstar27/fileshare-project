@@ -163,3 +163,4 @@ cython_debug/
 
 # misc
 server_storage/
+logs/
