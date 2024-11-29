@@ -127,6 +127,14 @@ class FileOperator:
             send_cmd = "OK"
             client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
             files = os.listdir(str(os.path.join(self.storage_dir, subfolder)))
+            while True:
+                # Wait for client to give the OK
+                received = client_socket.recv(self.buffer).decode(self.format)
+                if received == "OK":
+                    break
+                else:
+                    print(received)
+                    return
             for file in files:
                 file += "\n"
                 client_socket.send(file.encode(self.format))

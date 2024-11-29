@@ -124,7 +124,7 @@ class FileRequester:
             transfer_log = []
             transfer_start_time = time.time()
             last_append_time = time.time()
-
+            self.server.send("OK".encode(self.format))
             data = self.server.recv(self.buffer)
             while data:
                 recv_file.write(data)
@@ -173,11 +173,12 @@ class FileRequester:
                 print(received)
                 return
         try:
+            self.server.send("OK".encode(self.format))
             data = self.server.recv(self.buffer).decode(self.format)
             while data:
                 print(data, end='')
                 data = self.server.recv(self.buffer).decode(self.format)
-        except UnicodeDecodeError:
+        except:
             print("Error Displaying Directory")
         self.server.close()
 
