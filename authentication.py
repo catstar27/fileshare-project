@@ -16,7 +16,6 @@ bcrypt library: pip install bcrypt
 
 """
 
-
 class Authentication:
     def __init__(self):
         pass

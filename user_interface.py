@@ -96,9 +96,10 @@ def show_login_screen():
             #replacement code to check if username already exist's
             if new_username and new_password:
                 auth.add_user(new_username, new_password)
-                messagebox.showinfo( "User Created")
+                messagebox.showinfo("User Created")
                 show_login_screen() 
-
+            else:
+                messagebox.showerror("please fill in both boxes")
             '''
             #original code segment
             # Check if username already exists
