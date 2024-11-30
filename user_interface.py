@@ -4,8 +4,8 @@ from functools import partial
 from authentication import Authentication
 from file_requester import FileRequester
 from analysis import PerformanceAnalysis
-auth = Authentication
-analysis = PerformanceAnalysis
+auth = Authentication()
+analysis = PerformanceAnalysis()
 
 
 #very basic UI for the project
@@ -95,11 +95,15 @@ def show_login_screen():
 
             #replacement code to check if username already exist's
             if new_username and new_password:
-                auth.add_user(new_username, new_password)
-                messagebox.showinfo("User Created")
-                show_login_screen() 
+                existing_user_status = auth.check_password(new_username, new_password)
+                if existing_user_status == 2:
+                    auth.add_user(new_username, new_password)
+                    messagebox.showinfo("User Created")
+                    show_login_screen() 
+                else:
+                    messagebox.showerror("please fill in both boxes")
             else:
-                messagebox.showerror("please fill in both boxes")
+                messagebox.showerror("please fill both boxes")
             '''
             #original code segment
             # Check if username already exists
