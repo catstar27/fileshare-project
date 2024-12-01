@@ -2,6 +2,7 @@ import os
 import socket
 import time
 from analysis import PerformanceAnalysis as pa
+from tkinter import messagebox
 
 analysis = pa()
 
@@ -40,6 +41,19 @@ class FileRequester:
                     response_time = time.time() - response_start_time
                     break
                 elif received == "FILE_EXISTS":
+                    confirm = messagebox.askyesno("File exist on server, do you wish to overwrite")
+                    if confirm:
+                        new_send = "ok"
+                        self.server.send(new_send.encode(self.format))
+                        response_time= time.time() - response_start_time
+                        break
+                    else:
+                        new_send = "cancel"
+                        self.server.send(new_send.encode(self.format))
+                        break        
+
+
+                    '''replacing this segment sowwy
                     confirm = input("File exists, continue? (y/n)\n")
                     if confirm == 'y':
                         new_send = "OK"
@@ -50,6 +64,7 @@ class FileRequester:
                         new_send = "CANCEL"
                         self.server.send(new_send.encode(self.format))
                         break
+                        '''
                 else:
                     print(received)
                     return
