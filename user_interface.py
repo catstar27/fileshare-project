@@ -228,6 +228,64 @@ def show_upload_screen():
                 file_database[file_name] = file_path
                 update_file_list()
     '''
+    #new function im testing to display files
+    def show_upload_screen():
+        clear_window()
+
+        file_frame = tk.Frame(root)
+        file_frame.pack(pady=15, fill=tk.BOTH, expand=True)
+
+        canvas = tk.canvas(file_frame, orient = "vertical",command=canvas.yview)
+        canvas.config(yscrollcommand=scrollbar.set)
+
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        file_list_frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=file_list_frame, anchor= "nw")
+
+        def update_file_list():
+            #shows the new file list with all files in file_database
+            for widget in file_list_frame.winfo_children():
+                widget.destroy()
+            row = 0
+            for file_name in file_database:
+                file_label = tk.Label(file_list_frame, text= file_name)
+                file_label.grid(row=row, column=0, padx=5, pady=2, sticky = "w")
+
+                download_button = tk.Button(
+                    file_list_frame, text= "download", command = partial(download_file, file_name)
+                )
+                delete_button = tk.Button(
+                    file_list_frame, text = "delete", command=partial(delete_file, file_name)
+                )
+                delete_button.grid(row=row, column=2, padx=5, pady=2)
+
+                row +=1
+
+            file_list_frame.update_idletasks()
+            canvas.config(scrollregion=canvas.bbox("all"))
+
+        def upload_file():
+            file_path = filedialog.askopenfilename()
+            if file_path:
+                file_name = file_path.split("/")[-1]
+                if file_name in file_database:
+                    replace = messagebox.askyesno(
+                        "file exist", f"file' {file_name}'already exist, do you want to replace it?"
+                    )
+                    if not replace:
+                        return
+                
+                file_requester.send_to_server(file_path)
+
+                file_database[file_name] = file_path
+                update_file_list()
+
+        upload_button = tk.Button(root, text="Upload File", command=upload_file)
+        upload_button.pack(pady=10)
+
+        update_file_list()
 
     #replacement for download segment
     def download_file(file_name):
@@ -243,6 +301,8 @@ def show_upload_screen():
     #replacement for deleting file segment
     def delete_file(file_name):
         file_requester.delete_on_server(file_name)
+        if file_name in file_database:
+            del file_database[file_name]
         update_file_list()
 
 
