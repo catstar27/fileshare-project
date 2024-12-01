@@ -243,8 +243,13 @@ def show_upload_screen():
 
         file_list_frame = tk.Frame(canvas)
         canvas.create_window((0, 0), window=file_list_frame, anchor= "nw")
-
+        def load_files_from_server():
+            files = file_requester.show_dir()
+            for file_name in files:
+                if file_name not in file_database:
+                    file_database[file_name]= None
         def update_file_list():
+            print("current file database:",file_database)
             #shows the new file list with all files in file_database
             for widget in file_list_frame.winfo_children():
                 widget.destroy()
