@@ -112,6 +112,7 @@ class FileRequester:
         self.connect_server()
         send_cmd = f"send_to_client {filename}"
         self.server.send(send_cmd.encode(self.format))
+        filename = os.path.basename(filename)
         response_start_time = time.time()
         while True:
             # Wait for server to give the OK
@@ -128,7 +129,6 @@ class FileRequester:
             messagebox.showerror("Error", "Error Writing File")
         else:
             # Variables for performance analysis
-            filename = os.path.basename(filename)
             total_size = os.path.getsize(os.path.join(self.dest_dir, filename))
             data_received = 0
             transfer_log = []

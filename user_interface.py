@@ -168,7 +168,7 @@ def show_upload_screen():
 
     # replacement for download segment
     def download_file(file_name):
-        file_requester.recv_from_server(file_name)
+        file_requester.recv_from_server(current_subfolder+os.path.sep+file_name)
 
     # replacement for deleting file segment
     def delete_file(file_name):
