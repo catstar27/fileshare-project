@@ -62,17 +62,6 @@ def show_login_screen():
         else:  # user not found
             messagebox.showerror("error", "user not found")
 
-    '''
-        # original   
-        # Placeholder: check if the user exists and the password matches
-        if username in user_database and user_database[username] == password:
-            global current_user
-            current_user = username  # Set the current user
-            show_ip_screen()  # Proceed to IP input after successful login
-        else:
-            messagebox.showerror("Error", "Invalid username or password.")
-        '''
-
     def show_create_user_screen():
         clear_window()
 
@@ -104,18 +93,7 @@ def show_login_screen():
                     messagebox.showerror("please fill in both boxes")
             else:
                 messagebox.showerror("please fill both boxes")
-            '''
-            #original code segment
-            # Check if username already exists
-            if new_username in user_database:
-                messagebox.showerror("Error", "Username already exists!")
-            elif new_username and new_password:
-                user_database[new_username] = new_password  # Store user in the database
-                messagebox.showinfo("Success", "User created successfully!")
-                show_login_screen()  # Go back to the login screen
-            else:
-                messagebox.showerror("Error", "Please fill in both fields.")
-            '''
+
         create_user_button = tk.Button(create_user_frame, text="Create User", command=handle_create_user)
         create_user_button.pack(pady=10)
 
@@ -152,18 +130,8 @@ def show_ip_screen():
             file_requester = FileRequester(ip_server=ip_address, dest_dir=os.getcwd())
             show_login_screen()
         else:
-            messagebox.showerror("please enter valid ip address")
+            messagebox.showerror("Error", "IP Address Invalid")
 
-    '''
-    original code
-    def handle_ip_submission(): #does the ip submission
-        ip_address = ip_entry.get()
-        if ip_address:
-            #placeholder add actual ip address connection
-            show_upload_screen()  # Proceed to file upload screen if anything ip is entered
-        else:
-            messagebox.showerror("Error", "Please enter a valid IP address.")
-    '''
     ip_button = tk.Button(ip_frame, text="Submit IP", command=handle_ip_submission)
     ip_button.pack(side=tk.LEFT, padx=10)
 
@@ -173,6 +141,8 @@ def show_upload_screen():
     # file database screen
     clear_window()
 
+    global current_subfolder
+    current_subfolder = ""
     # Frame for uploaded files and scrollable canvas
     file_frame = tk.Frame(root)
     file_frame.pack(pady=15, fill=tk.BOTH, expand=True)
@@ -196,39 +166,10 @@ def show_upload_screen():
     button_frame = tk.Frame(root)
     button_frame.pack(pady=10)
 
-    '''
-    original code segment
-
-    def upload_file():
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            # Check if the file exists in the dictionary
-            file_name = file_path.split("/")[-1]
-            if file_name in file_database:
-                # Ask user if they want to replace the file
-                replace = messagebox.askyesno("File Exists",
-                                              f"File '{file_name}' already exists. Do you want to replace it?")
-                if replace:
-                    file_database[file_name] = file_path
-                    # Update the UI
-                    update_file_list()
-            else:
-                # Simulate adding file to the database
-                file_database[file_name] = file_path
-                update_file_list()
-    '''
-
     # replacement for download segment
     def download_file(file_name):
         file_requester.recv_from_server(file_name)
 
-    '''
-    replacing this one too
-
-    def download_file(file_name):
-        # just show a message box for now
-        messagebox.showinfo("Download", f"Downloading file: {file_name}")
-    '''
     # replacement for deleting file segment
     def delete_file(file_name):
         file_requester.delete_on_server(file_name)
@@ -236,15 +177,6 @@ def show_upload_screen():
             del file_database[file_name]
         update_file_list()
 
-    '''
-    another one dj khaliiddddd
-
-    def delete_file(file_name):
-        if file_name in file_database:
-            del file_database[file_name]
-            messagebox.showinfo("Deleted", f"File '{file_name}' has been deleted.")
-            update_file_list()
-    '''
     # Performance method after file operations
     def upload_file():
         file_path = filedialog.askopenfilename()
@@ -253,25 +185,55 @@ def show_upload_screen():
             analysis.create_log_file([...])  # to log all data
             update_file_list()
 
+    def select_subfolder(file_name):
+        global current_subfolder
+        if current_subfolder != "":
+            current_subfolder += os.path.sep
+        current_subfolder += file_name
+        update_file_list()
+
+    def move_dir_up():
+        global current_subfolder
+        dir_list = current_subfolder.split(os.path.sep)
+        dir_list.pop()
+        current_subfolder = os.path.sep.join(dir_list)
+        update_file_list()
+
     def update_file_list():
         for widget in file_list_frame.winfo_children():
             widget.destroy()
-
+        dir_display_text = "Current Dir: "
+        if current_subfolder == "":
+            dir_display_text += "Root"
+        else:
+            dir_display_text += os.path.sep+current_subfolder
+        dir_display.config(text=dir_display_text)
         row = 0
-        dir_string = file_requester.show_dir()
+        dir_string = file_requester.show_dir(current_subfolder)
         files = dir_string.split('\n')
+        files.pop()
+
+        global file_database
+        file_database = {}
         for file in files:
-            file_database[file] = file
+            is_dir, file = file.split(':')
+            file_database[file] = is_dir
         for file_name in file_database:
             # Place the file name, download, and delete buttons in a single row
             file_label = tk.Label(file_list_frame, text=file_name)
             file_label.grid(row=row, column=0, padx=5, pady=2, sticky="w")
 
-            # download button
-            download_button = tk.Button(file_list_frame, text="Download", command=partial(download_file, file_name))
-            download_button.grid(row=row, column=1, padx=5, pady=2)
+            # download button if file
+            if file_database[file_name] == "FILE":
+                download_button = tk.Button(file_list_frame, text="Download", command=partial(download_file, file_name))
+                download_button.grid(row=row, column=1, padx=5, pady=2)
 
-            # upload button
+            # show dir button if directory
+            if file_database[file_name] == "DIR":
+                download_button = tk.Button(file_list_frame, text="Show", command=partial(select_subfolder, file_name))
+                download_button.grid(row=row, column=1, padx=5, pady=2)
+
+            # delete button
             delete_button = tk.Button(file_list_frame, text="Delete", command=partial(delete_file, file_name))
             delete_button.grid(row=row, column=2, padx=5, pady=2)
 
@@ -282,6 +244,10 @@ def show_upload_screen():
     # Upload button
     upload_button = tk.Button(button_frame, text="Upload File", command=upload_file)
     upload_button.pack(side=tk.LEFT, padx=10)
+    move_dir = tk.Button(button_frame, text="Move Directory Up", command=move_dir_up)
+    move_dir.pack(side=tk.LEFT, padx=10)
+    dir_display = tk.Label(button_frame, text="Current Dir: " + current_subfolder)
+    dir_display.pack(side=tk.LEFT, padx=10)
     update_file_list()
 
 

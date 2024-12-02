@@ -22,12 +22,14 @@ class FileRequester:
     def __init__(self, ip_server, dest_dir):
         self.ip_server = ip_server
         self.dest_dir = dest_dir
+        self.connect_server()
+        self.server.close()
 
     def connect_server(self):
         try:
             self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.server.connect((self.ip_server, self.port))
-        except ConnectionRefusedError:
+        except ConnectionRefusedError or ConnectionError or ConnectionAbortedError or ConnectionResetError:
             messagebox.askyesno("Connection Error",
                                 f"Could not connect to ip {self.ip_server}. Is the server running?")
 
@@ -36,7 +38,7 @@ class FileRequester:
         if os.path.exists(filename):
             send_cmd = f"recv_from_client {os.path.basename(filename)}"
             self.server.send(send_cmd.encode(self.format))
-            response_start_time = time.time() # Measure time
+            response_start_time = time.time()  # Measure time
             
             while True:
                 # Wait for server to give the OK
@@ -50,14 +52,14 @@ class FileRequester:
                     if confirm:
                         new_send = "OK"
                         self.server.send(new_send.encode(self.format))
-                        response_time= time.time() - response_start_time
+                        response_time = time.time() - response_start_time
                         break
                     else:
                         new_send = "CANCEL"
                         self.server.send(new_send.encode(self.format))
                         break
                 else:
-                    print(received)
+                    messagebox.showerror("Error", received)
                     return
             send_file = open(filename, "rb")
 
@@ -103,7 +105,7 @@ class FileRequester:
             analysis.create_log_file(store_data)     
             analysis.plot_data_rate_graph(filename, transfer_log, "Upload")
         else:
-            print("Requested File Not on Server")
+            messagebox.showerror("Error", "Requested File Missing")
         self.server.close()
 
     def recv_from_server(self, filename):  # Receives a file with the given name from the server
@@ -118,12 +120,12 @@ class FileRequester:
                 response_time = time.time() - response_start_time
                 break
             else:
-                print(received)
+                messagebox.showerror("Error", received)
                 return
         try:
             recv_file = open(os.path.join(self.dest_dir, filename), "wb")
         except PermissionError or FileNotFoundError:
-            print("Error Writing File")
+            messagebox.showerror("Error", "Error Writing File")
         else:
             # Variables for performance analysis
             filename = os.path.basename(filename)
@@ -168,9 +170,9 @@ class FileRequester:
             recv_file.close()
         self.server.close()
 
-    def show_dir(self):
+    def show_dir(self, subfolder=""):
         self.connect_server()
-        send_cmd = "show_dir"
+        send_cmd = "show_dir "+subfolder
         self.server.send(send_cmd.encode(self.format))
         while True:
             # Wait for server to give the OK
@@ -178,17 +180,14 @@ class FileRequester:
             if received == "OK":
                 break
             else:
-                print(received)
+                messagebox.showerror("Error", received)
                 return
         server_dir = ""
-        try:
-            self.server.send("OK".encode(self.format))
+        self.server.send("OK".encode(self.format))
+        data = self.server.recv(self.buffer).decode(self.format)
+        while data:
+            server_dir += data
             data = self.server.recv(self.buffer).decode(self.format)
-            while data:
-                server_dir += data
-                data = self.server.recv(self.buffer).decode(self.format)
-        except:
-            print("Error Displaying Directory")
         self.server.close()
         return server_dir
 
@@ -202,7 +201,7 @@ class FileRequester:
             if received == "OK":
                 break
             else:
-                print(received)
+                messagebox.showerror("Error", received)
                 return
         self.server.close()
 
@@ -216,7 +215,7 @@ class FileRequester:
             if received == "OK":
                 break
             else:
-                print(received)
+                messagebox.showerror("Error", received)
                 return
         self.server.close()
 

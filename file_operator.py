@@ -140,6 +140,10 @@ class FileOperator:
                     print(received)
                     return
             for file in files:
+                if os.path.isdir(os.path.join(self.storage_dir, file)):
+                    file = "DIR:"+file
+                else:
+                    file = "FILE:"+file
                 file += "\n"
                 client_socket.send(file.encode(self.format))
         else:
