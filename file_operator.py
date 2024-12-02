@@ -63,8 +63,9 @@ class FileOperator:
                 break
             elif cmd[0] == "login":
                 self.check_user(conn, cmd[1])
+            elif cmd[0] == "adduser":
+                self.add_user(conn, cmd[1])
             else:
-                print(f"Invalid Request: {cmd[0]}")
                 break
         conn.close()
 
@@ -194,6 +195,20 @@ class FileOperator:
             client_socket.send("BAD_PASSWORD".encode(self.format))
         else:  # user not found
             client_socket.send("BAD_USER".encode(self.format))
+
+    def add_user(self, client_socket, data):
+        username, password = data.split(' ', 1)
+        if self.auth.check_password(username, password) == 2:
+            allow = input(f"Allow user {username} to be created? (y/n)\n")
+            if allow == "y":
+                client_socket.send("OK".encode(self.format))
+            else:
+                client_socket.send("REFUSED".encode(self.format))
+                return
+        else:
+            client_socket.send("USER_EXISTS".encode(self.format))
+            return
+        self.auth.add_user(username, password)
 
 
 folder = ""

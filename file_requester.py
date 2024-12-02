@@ -230,3 +230,15 @@ class FileRequester:
                 break
         self.server.close()
         return received
+
+    def add_user(self, username, password):
+        self.connect_server()
+        send_cmd = f"adduser {username} {password}"
+        self.server.send(send_cmd.encode(self.format))
+        while True:
+            # Wait for server to give the OK
+            received = self.server.recv(self.buffer).decode(self.format)
+            if received:
+                break
+        self.server.close()
+        return received

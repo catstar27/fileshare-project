@@ -2,10 +2,8 @@ import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from functools import partial
-from authentication import Authentication
 from file_requester import FileRequester
 from analysis import PerformanceAnalysis
-auth = Authentication()
 analysis = PerformanceAnalysis()
 
 
@@ -84,15 +82,17 @@ def show_login_screen():
 
             # replacement code to check if username already exist's
             if new_username and new_password:
-                existing_user_status = auth.check_password(new_username, new_password)
-                if existing_user_status == 2:
-                    auth.add_user(new_username, new_password)
-                    messagebox.showinfo("User Created")
-                    show_login_screen() 
+                result = file_requester.add_user(new_username, new_password)
+                if result == "OK":
+                    messagebox.showinfo("Success!", "User Created Successfully!")
+                elif result == "USER_EXISTS":
+                    messagebox.showerror("Error", "User Exists")
+                elif result == "REFUSED":
+                    messagebox.showerror("Error", "User Creation Refused by Server")
                 else:
-                    messagebox.showerror("please fill in both boxes")
+                    messagebox.showerror("Error", "Unknown Error Occurred")
             else:
-                messagebox.showerror("please fill both boxes")
+                messagebox.showerror("Error", "Empty Entry")
 
         create_user_button = tk.Button(create_user_frame, text="Create User", command=handle_create_user)
         create_user_button.pack(pady=10)
