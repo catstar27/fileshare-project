@@ -172,6 +172,10 @@ def show_upload_screen():
 
     # replacement for deleting file segment
     def delete_file(file_name):
+        if file_database[file_name] == "DIR":
+            result = messagebox.askyesno("Delete Subfolder?", "This is a subfolder; Do you wish to delete it anyway?")
+            if not result:
+                return
         file_requester.delete_on_server(file_name)
         if file_name in file_database:
             del file_database[file_name]

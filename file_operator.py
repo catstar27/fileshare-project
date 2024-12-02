@@ -155,10 +155,22 @@ class FileOperator:
         if os.path.exists(os.path.join(self.storage_dir, filepath)):
             send_cmd = "OK"
             client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
-            os.remove(os.path.join(self.storage_dir, filepath))
+            if os.path.isdir(os.path.join(self.storage_dir, filepath)):
+                self.recursive_delete(filepath)
+            else:
+                os.remove(os.path.join(self.storage_dir, filepath))
         else:
             send_cmd = "Invalid File to Delete"
             client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
+
+    def recursive_delete(self, filepath):
+        print(f"Recursively Deleting {filepath}")
+        for file in os.listdir(str(os.path.join(self.storage_dir, filepath))):
+            if os.path.isdir(os.path.join(self.storage_dir, file)):
+                self.recursive_delete(file)
+            else:
+                os.remove(os.path.join(self.storage_dir, file))
+        os.rmdir(os.path.join(self.storage_dir, filepath))
 
     def create_subfolder(self, client_socket, subfolder):
         print(f"Creating Subfolder {subfolder}")
