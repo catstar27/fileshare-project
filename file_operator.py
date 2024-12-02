@@ -2,6 +2,7 @@ import os
 import socket
 import threading
 import atexit
+from authentication import Authentication
 
 
 class FileOperator:
@@ -17,6 +18,7 @@ class FileOperator:
     storage_dir = ""
     server = None
     files_open = {}
+    auth = Authentication()
 
     def __init__(self, _storage_dir):
         if os.path.isdir(os.path.abspath(_storage_dir)):
@@ -59,6 +61,8 @@ class FileOperator:
                 break
             elif cmd[0] == "close_connection":
                 break
+            elif cmd[0] == "login":
+                self.check_user(conn, cmd[1])
             else:
                 print(f"Invalid Request: {cmd[0]}")
                 break
@@ -164,6 +168,16 @@ class FileOperator:
 
     def close_server(self):
         self.server.shutdown(1)
+
+    def check_user(self, client_socket, data):
+        username, password = data.split(' ', 1)
+        result = self.auth.check_password(username, password)
+        if result == 0:  # login_successful
+            client_socket.send("OK".encode(self.format))
+        elif result == 1:  # passwords wrong
+            client_socket.send("BAD_PASSWORD".encode(self.format))
+        else:  # user not found
+            client_socket.send("BAD_USER".encode(self.format))
 
 
 folder = ""

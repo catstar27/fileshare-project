@@ -9,9 +9,9 @@ auth = Authentication()
 analysis = PerformanceAnalysis()
 
 
-#very basic UI for the project
-#change as any of you see fit, there are placeholders where the buttons don't actually do anything
-#there is some error handling, I will continue to expand on it
+# very basic UI for the project
+# change as any of you see fit, there are placeholders where the buttons don't actually do anything
+# there is some error handling, I will continue to expand on it
 
 # Create main window
 root = tk.Tk()
@@ -51,15 +51,15 @@ def show_login_screen():
         username = username_entry.get()
         password = password_entry.get()
 
-        #filling in place holder
-        result = auth.check_password(username, password)
-        if result == 0: #login_succesful
+        # filling in place holder
+        result = file_requester.login(username, password)
+        if result == "OK":  # login_successful
             global current_user
-            current_user=username
-            show_ip_screen()
-        elif result == 1: #passwords wrong
+            current_user = username
+            show_upload_screen()
+        elif result == "BAD_PASSWORD":  # passwords wrong
             messagebox.showerror("error", "incorrect password")
-        else: #user not found
+        else:  # user not found
             messagebox.showerror("error", "user not found")
 
     '''
@@ -72,7 +72,6 @@ def show_login_screen():
         else:
             messagebox.showerror("Error", "Invalid username or password.")
         '''
-
 
     def show_create_user_screen():
         clear_window()
@@ -94,7 +93,7 @@ def show_login_screen():
             new_username = create_username_entry.get()
             new_password = create_password_entry.get()
 
-            #replacement code to check if username already exist's
+            # replacement code to check if username already exist's
             if new_username and new_password:
                 existing_user_status = auth.check_password(new_username, new_password)
                 if existing_user_status == 2:
@@ -142,21 +141,18 @@ def show_ip_screen():
     ip_label = tk.Label(ip_frame, text="Enter IP Address:")
     ip_label.pack(side=tk.LEFT)
 
-
     ip_entry = tk.Entry(ip_frame, width=25)
     ip_entry.pack(side=tk.LEFT)
 
-    #replacement code segment
+    # replacement code segment
     def handle_ip_submission():
         ip_address = ip_entry.get()
         if ip_address:
             global file_requester
             file_requester = FileRequester(ip_server=ip_address, dest_dir=os.getcwd())
-            show_upload_screen()
+            show_login_screen()
         else:
             messagebox.showerror("please enter valid ip address")
-
-
 
     '''
     original code
@@ -172,7 +168,7 @@ def show_ip_screen():
     ip_button.pack(side=tk.LEFT, padx=10)
 
 
-#handles file upload management screen
+# handles file upload management screen
 def show_upload_screen():
     # file database screen
     clear_window()
@@ -294,5 +290,5 @@ def clear_window():
         widget.destroy()
 
 
-show_login_screen()
+show_ip_screen()
 root.mainloop()

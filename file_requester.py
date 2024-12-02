@@ -24,8 +24,12 @@ class FileRequester:
         self.dest_dir = dest_dir
 
     def connect_server(self):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((self.ip_server, self.port))
+        try:
+            self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server.connect((self.ip_server, self.port))
+        except ConnectionRefusedError:
+            messagebox.askyesno("Connection Error",
+                                f"Could not connect to ip {self.ip_server}. Is the server running?")
 
     def send_to_server(self, filename):  # Sends the file at the given path to the server
         self.connect_server()
@@ -41,30 +45,17 @@ class FileRequester:
                     response_time = time.time() - response_start_time
                     break
                 elif received == "FILE_EXISTS":
-                    confirm = messagebox.askyesno("File exist on server, do you wish to overwrite")
+                    confirm = messagebox.askyesno("File Exists",
+                                                  f"File {filename} exists on server, do you wish to overwrite")
                     if confirm:
-                        new_send = "ok"
-                        self.server.send(new_send.encode(self.format))
-                        response_time= time.time() - response_start_time
-                        break
-                    else:
-                        new_send = "cancel"
-                        self.server.send(new_send.encode(self.format))
-                        break        
-
-
-                    '''replacing this segment sowwy
-                    confirm = input("File exists, continue? (y/n)\n")
-                    if confirm == 'y':
                         new_send = "OK"
                         self.server.send(new_send.encode(self.format))
-                        response_time = time.time() - response_start_time
+                        response_time= time.time() - response_start_time
                         break
                     else:
                         new_send = "CANCEL"
                         self.server.send(new_send.encode(self.format))
                         break
-                        '''
                 else:
                     print(received)
                     return
@@ -228,3 +219,15 @@ class FileRequester:
                 print(received)
                 return
         self.server.close()
+
+    def login(self, username, password):
+        self.connect_server()
+        send_cmd = f"login {username} {password}"
+        self.server.send(send_cmd.encode(self.format))
+        while True:
+            # Wait for server to give the OK
+            received = self.server.recv(self.buffer).decode(self.format)
+            if received:
+                break
+        self.server.close()
+        return received
