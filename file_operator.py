@@ -180,7 +180,7 @@ class FileOperator:
             client_socket.send(send_cmd.encode(self.format))  # Give Client the OK
             os.mkdir(os.path.join(self.storage_dir, subfolder))
         else:
-            send_cmd = "Subfolder Exists"
+            send_cmd = "SUBFOLDER_EXISTS"
             client_socket.send(send_cmd.encode(self.format))
 
     def close_server(self):

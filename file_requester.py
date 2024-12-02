@@ -214,9 +214,12 @@ class FileRequester:
             received = self.server.recv(self.buffer).decode(self.format)
             if received == "OK":
                 break
+            elif received == "SUBFOLDER_EXISTS":
+                messagebox.showerror("Error", "Subfolder Already Exists")
+                break
             else:
                 messagebox.showerror("Error", received)
-                return
+                break
         self.server.close()
 
     def login(self, username, password):

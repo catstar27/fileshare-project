@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 from functools import partial
 from file_requester import FileRequester
 from analysis import PerformanceAnalysis
@@ -14,7 +14,7 @@ analysis = PerformanceAnalysis()
 # Create main window
 root = tk.Tk()
 root.title("File Management")
-root.geometry("500x400")
+root.geometry("600x500")
 
 file_database = {}
 
@@ -203,6 +203,14 @@ def show_upload_screen():
         current_subfolder = os.path.sep.join(dir_list)
         update_file_list()
 
+    def create_subfolder():
+        subfolder = tk.simpledialog.askstring("", "Enter a subfolder name: ")
+        if current_subfolder != "":
+            file_requester.create_subfolder(current_subfolder+os.path.sep+subfolder)
+        else:
+            file_requester.create_subfolder(subfolder)
+        update_file_list()
+
     def update_file_list():
         for widget in file_list_frame.winfo_children():
             widget.destroy()
@@ -248,6 +256,8 @@ def show_upload_screen():
     # Upload button
     upload_button = tk.Button(button_frame, text="Upload File", command=upload_file)
     upload_button.pack(side=tk.LEFT, padx=10)
+    create_subfolder_button = tk.Button(button_frame, text="Create Subfolder", command=create_subfolder)
+    create_subfolder_button.pack(side=tk.LEFT, padx=10)
     move_dir = tk.Button(button_frame, text="Move Directory Up", command=move_dir_up)
     move_dir.pack(side=tk.LEFT, padx=10)
     dir_display = tk.Label(button_frame, text="Current Dir: " + current_subfolder)
