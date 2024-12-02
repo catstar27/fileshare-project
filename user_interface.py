@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from functools import partial
@@ -150,7 +151,7 @@ def show_ip_screen():
         ip_address = ip_entry.get()
         if ip_address:
             global file_requester
-            file_requester = FileRequester(ip_server=ip_address, dest_dir="client_files")
+            file_requester = FileRequester(ip_server=ip_address, dest_dir=os.getcwd())
             show_upload_screen()
         else:
             messagebox.showerror("please enter valid ip address")
@@ -199,14 +200,6 @@ def show_upload_screen():
     button_frame = tk.Frame(root)
     button_frame.pack(pady=10)
 
-    #replacement code segment
-    def upload_file():
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            file_requester.send_to_server(file_path)
-            update_file_list()
-
-
     '''
     original code segment
 
@@ -228,71 +221,8 @@ def show_upload_screen():
                 file_database[file_name] = file_path
                 update_file_list()
     '''
-    #new function im testing to display files
-    def show_upload_screen():
-        clear_window()
 
-        file_frame = tk.Frame(root)
-        file_frame.pack(pady=15, fill=tk.BOTH, expand=True)
-
-        canvas = tk.canvas(file_frame, orient = "vertical",command=canvas.yview)
-        canvas.config(yscrollcommand=scrollbar.set)
-
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        file_list_frame = tk.Frame(canvas)
-        canvas.create_window((0, 0), window=file_list_frame, anchor= "nw")
-        def load_files_from_server():
-            files = file_requester.show_dir()
-            for file_name in files:
-                if file_name not in file_database:
-                    file_database[file_name]= None
-        def update_file_list():
-            print("current file database:",file_database)
-            #shows the new file list with all files in file_database
-            for widget in file_list_frame.winfo_children():
-                widget.destroy()
-            row = 0
-            for file_name in file_database:
-                file_label = tk.Label(file_list_frame, text= file_name)
-                file_label.grid(row=row, column=0, padx=5, pady=2, sticky = "w")
-
-                download_button = tk.Button(
-                    file_list_frame, text= "download", command = partial(download_file, file_name)
-                )
-                delete_button = tk.Button(
-                    file_list_frame, text = "delete", command=partial(delete_file, file_name)
-                )
-                delete_button.grid(row=row, column=2, padx=5, pady=2)
-
-                row +=1
-
-            file_list_frame.update_idletasks()
-            canvas.config(scrollregion=canvas.bbox("all"))
-
-        def upload_file():
-            file_path = filedialog.askopenfilename()
-            if file_path:
-                file_name = file_path.split("/")[-1]
-                if file_name in file_database:
-                    replace = messagebox.askyesno(
-                        "file exist", f"file' {file_name}'already exist, do you want to replace it?"
-                    )
-                    if not replace:
-                        return
-                
-                file_requester.send_to_server(file_path)
-
-                file_database[file_name] = file_path
-                update_file_list()
-
-        upload_button = tk.Button(root, text="Upload File", command=upload_file)
-        upload_button.pack(pady=10)
-
-        update_file_list()
-
-    #replacement for download segment
+    # replacement for download segment
     def download_file(file_name):
         file_requester.recv_from_server(file_name)
 
@@ -303,13 +233,12 @@ def show_upload_screen():
         # just show a message box for now
         messagebox.showinfo("Download", f"Downloading file: {file_name}")
     '''
-    #replacement for deleting file segment
+    # replacement for deleting file segment
     def delete_file(file_name):
         file_requester.delete_on_server(file_name)
         if file_name in file_database:
             del file_database[file_name]
         update_file_list()
-
 
     '''
     another one dj khaliiddddd
@@ -320,19 +249,23 @@ def show_upload_screen():
             messagebox.showinfo("Deleted", f"File '{file_name}' has been deleted.")
             update_file_list()
     '''
-    #Performance method after file operations
+    # Performance method after file operations
     def upload_file():
         file_path = filedialog.askopenfilename()
         if file_path:
             file_requester.send_to_server(file_path)
-            analysis.create_log_file([...]) #to log all data
-            update_file_list
+            analysis.create_log_file([...])  # to log all data
+            update_file_list()
 
     def update_file_list():
         for widget in file_list_frame.winfo_children():
             widget.destroy()
 
         row = 0
+        dir_string = file_requester.show_dir()
+        files = dir_string.split('\n')
+        for file in files:
+            file_database[file] = file
         for file_name in file_database:
             # Place the file name, download, and delete buttons in a single row
             file_label = tk.Label(file_list_frame, text=file_name)
@@ -353,8 +286,6 @@ def show_upload_screen():
     # Upload button
     upload_button = tk.Button(button_frame, text="Upload File", command=upload_file)
     upload_button.pack(side=tk.LEFT, padx=10)
-
-
     update_file_list()
 
 
@@ -363,8 +294,5 @@ def clear_window():
         widget.destroy()
 
 
-
 show_login_screen()
-
-
 root.mainloop()

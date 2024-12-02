@@ -189,15 +189,17 @@ class FileRequester:
             else:
                 print(received)
                 return
+        server_dir = ""
         try:
             self.server.send("OK".encode(self.format))
             data = self.server.recv(self.buffer).decode(self.format)
             while data:
-                print(data, end='')
+                server_dir += data
                 data = self.server.recv(self.buffer).decode(self.format)
         except:
             print("Error Displaying Directory")
         self.server.close()
+        return server_dir
 
     def delete_on_server(self, filepath):
         self.connect_server()
